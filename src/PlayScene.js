@@ -27,9 +27,21 @@ class PlayScene extends Phaser.Scene {
     this.obstacles = this.physics.add.group();
 
     this.initAnims();
+    this.initColliders();
     this.initStartTrigger();
     this.handleInputs();
 
+  }
+
+  initColliders() {
+    this.physics.add.collider(this.dino, this.obstacles, () => {
+      this.physics.pause();
+      this.isGameRunning = false;
+      this.anims.pauseAll();
+      this.dino.setTexture('dino-hurt');
+      this.respawnTime = 0;
+      this.gameSpeed = 10;
+    }, null, this)
   }
 
   //whenver dinosaur hits invisible box this fires to start game

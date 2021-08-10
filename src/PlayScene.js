@@ -7,13 +7,14 @@ class PlayScene extends Phaser.Scene {
   }
 
   create() {
+    this.isGameRunning = false;
     this.gameSpeed = 10;
     const {height, width} = this.game.config;
 
     //cretes invisible box that when the dinosaur hits, the game starts
     this.startTrigger = this.physics.add.sprite(0, 10).setOrigin(0, 1).setImmovable();
     //scrollable infinite structure which we use as ground
-    this.ground = this.add.tileSprite(0, height, width, 26, 'ground').setOrigin(0, 1)
+    this.ground = this.add.tileSprite(0, height, 88, 26, 'ground').setOrigin(0, 1)
     //dinosaur
     this.dino = this.physics.add.sprite(0, height, 'dino-idle')
     .setOrigin(0, 1)
@@ -33,13 +34,37 @@ class PlayScene extends Phaser.Scene {
     //overlaps box on dinosaur
     this.physics.add.overlap(this.startTrigger, this.dino, () => {
       //moves trigger when hit
-      if(this.start.y === 10) {
+      if(this.startTrigger.y === 10) {
         this.startTrigger.body.reset(0, height);
         return;
       }
       //executes trigger only once, since it overlaps with the dinosaur now
       this.startTrigger.disableBody(true, true);
-    }, null, this);
+
+      const startEvent = this.time.addEvent({
+        delay: 1000/60,
+        loop: true,
+        callbackScope: this,
+        //callback executes 60 times per second
+        //when the ground has the size of the canvas width, we start the game
+        callback: () => {
+          this.dino.setVelocityX(80);
+          this.dino.play('dino-run', 1);
+
+          if(this.ground.width < width) {
+            this.ground.width += 17 * 2;
+          }
+
+          if(this.ground.width >= width) {
+            this.ground.width = width;
+            this.isGameRunning = true;
+            this.dino.setVelocity(0);
+            startEvent.remove();
+          }
+        }
+      });
+
+    }, null, this)
   }
 
   initAnims() {
@@ -101,13 +126,15 @@ class PlayScene extends Phaser.Scene {
 
   //update is called 60 times per second (60fps)
   update() {
+    //nothing happens unless game is running
+    if (!this.isGameRunning) {return;}
     //every update the ground will move gameSpeed pixels
     this.ground.tilePositionX += this.gameSpeed;
 
     //if the dinosaur is changing position, then we are jumping so we stop the animations
     if(this.dino.body.deltaAbsY() > 0) {
       this.dino.anims.stop();
-      this.dino.setTexture('dino');
+      this.dino.setTexture('dino', 0);
     }
     //sets ducking animation
     else {

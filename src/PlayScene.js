@@ -10,6 +10,8 @@ class PlayScene extends Phaser.Scene {
     this.gameSpeed = 10;
     const {height, width} = this.game.config;
 
+    //cretes invisible box that when the dinosaur hits, the game starts
+    this.startTrigger = this.physics.add.sprite(0, 10).setOrigin(0, 1).setImmovable();
     //scrollable infinite structure which we use as ground
     this.ground = this.add.tileSprite(0, height, width, 26, 'ground').setOrigin(0, 1)
     //dinosaur
@@ -20,7 +22,24 @@ class PlayScene extends Phaser.Scene {
     .setGravityY(5000);
 
     this.initAnims();
+    this.initStartTrigger();
     this.handleInputs();
+
+  }
+
+  //whenver dinosaur hits invisible box this fires to start game
+  initStartTrigger() {
+    const {width, height} = this.game.config;
+    //overlaps box on dinosaur
+    this.physics.add.overlap(this.startTrigger, this.dino, () => {
+      //moves trigger when hit
+      if(this.start.y === 10) {
+        this.startTrigger.body.reset(0, height);
+        return;
+      }
+      //executes trigger only once, since it overlaps with the dinosaur now
+      this.startTrigger.disableBody(true, true);
+    }, null, this);
   }
 
   initAnims() {

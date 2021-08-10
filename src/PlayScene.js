@@ -33,6 +33,7 @@ class PlayScene extends Phaser.Scene {
 
   }
 
+  //stops game and animations when dinosaur hits any obstacles
   initColliders() {
     this.physics.add.collider(this.dino, this.obstacles, () => {
       this.physics.pause();
@@ -177,6 +178,13 @@ class PlayScene extends Phaser.Scene {
       this.placeObstacle();
       this.respawnTime = 0;
     }
+
+    //when obstacles move out of bounds they are destroyed
+    this.obstacles.getChildren().forEach(obstacle => {
+      if(obstacle.getBounds().right < 0) {
+        obstacle.destroy();
+      }
+    })
 
     //if the dinosaur is changing position, then we are jumping so we stop the animations
     if(this.dino.body.deltaAbsY() > 0) {

@@ -7,6 +7,7 @@ class PlayScene extends Phaser.Scene {
   }
 
   create() {
+    this.gameSpeed = 10;
     const {height, width} = this.game.config;
 
     //adds scrollable infinite structure which we use as ground
@@ -15,8 +16,11 @@ class PlayScene extends Phaser.Scene {
     this.dino = this.physics.add.sprite(0, height, 'dino-idle').setOrigin(0, 1);
   }
 
-  update() {
 
+  //update is called 60 times per second (60fps)
+  update() {
+    //every update the ground will move gameSpeed pixels
+    this.ground.tilePositionX += this.gameSpeed;
   }
 
 }

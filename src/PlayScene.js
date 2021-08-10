@@ -9,6 +9,8 @@ class PlayScene extends Phaser.Scene {
   create() {
     this.isGameRunning = false;
     this.gameSpeed = 10;
+    this.respawnTime = 0;
+
     const {height, width} = this.game.config;
 
     //cretes invisible box that when the dinosaur hits, the game starts
@@ -21,6 +23,8 @@ class PlayScene extends Phaser.Scene {
     .setCollideWorldBounds(true)
     //strength the dinosaur will be pulled to the ground at 5000 pixels per second
     .setGravityY(5000);
+
+    this.obstacles = this.physics.add.group();
 
     this.initAnims();
     this.initStartTrigger();
@@ -123,13 +127,44 @@ class PlayScene extends Phaser.Scene {
     })
   }
 
+  //places obstacles randomly on canvas
+  placeObstacle() {
+    const {width, height} = this.game.config;
+    const obstacleNumber = Math.floor(Math.random() * 7) + 1;
+    const distance = Phaser.Math.Between(600, 900);
+    let obstacle;
+
+    if(obstacleNumber > 6) {
+      const enemyHeight = [22, 50];
+      obstacle = this.obstacles
+      .create(width + distance, height - enemyHeight[Math.floor(Math.random() * 2)], 'enemy-bird')
+      obstacle.play('enemy-dino-fly', 1);
+      obstacle.body.height = obstacle.body.height / 1.5;
+    }
+    else {
+      obstacle =  this.obstacles.create(width + distance, height, `obsticle-${obstacleNumber}`)
+      obstacle.body.offset.y = +10;
+    }
+
+    obstacle
+    .setOrigin(0, 1)
+    .setImmovable();
+  }
 
   //update is called 60 times per second (60fps)
-  update() {
+  update(time, delta) {
     //nothing happens unless game is running
     if (!this.isGameRunning) {return;}
     //every update the ground will move gameSpeed pixels
     this.ground.tilePositionX += this.gameSpeed;
+    Phaser.Actions.IncX(this.obstacles.getChildren(), -this.gameSpeed);
+    //respawn time for obstacles
+    this.respawnTime += delta * this.gameSpeed * 0.08;
+
+    if(this.respawnTime >= 1500) {
+      this.placeObstacle();
+      this.respawnTime = 0;
+    }
 
     //if the dinosaur is changing position, then we are jumping so we stop the animations
     if(this.dino.body.deltaAbsY() > 0) {

@@ -24,6 +24,14 @@ class PlayScene extends Phaser.Scene {
     //strength the dinosaur will be pulled to the ground at 5000 pixels per second
     .setGravityY(5000);
 
+    this.gameOverScreen = this.add.container(width / 2, height / 2 - 50).setAlpha(0);
+    this.gameOverText = this.add.image(0, 0, 'game-over');
+    this.restart = this.add.image(0, 80, 'restart').setInteractive();
+
+    this.gameOverScreen.add([
+      this.gameOverText, this.restart
+    ])
+
     this.obstacles = this.physics.add.group();
 
     this.initAnims();
@@ -42,6 +50,7 @@ class PlayScene extends Phaser.Scene {
       this.dino.setTexture('dino-hurt');
       this.respawnTime = 0;
       this.gameSpeed = 10;
+      this.gameOverScreen.setAlpha(1);
     }, null, this)
   }
 
@@ -112,6 +121,19 @@ class PlayScene extends Phaser.Scene {
   }
 
   handleInputs() {
+
+    //resets all game settings when you restart the game
+    this.restart.on('pointerdown', () => {
+      this.dino.setVelocityY(0);
+      this.dino.body.height = 92;
+      this.dino.body.offset.y = 0;
+      this.physics.resume();
+      this.obstacles.clear(true, true);
+      this.isGameRunning = true;
+      this.gameOverScreen.setAlpha(0);
+      this.anims.resumeAll();
+    })
+
     //jumping
     this.input.keyboard.on('keydown_SPACE', () => {
       //prevents dinosaur from jumping mid-air
